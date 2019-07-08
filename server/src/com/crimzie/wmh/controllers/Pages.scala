@@ -48,8 +48,8 @@ object Pages {
       head(),
       body(
         p(s"$c challenges you to a list chicken! Once you submit your list pa" +
-          "ir through the form below, and all four lists, scenario, and terra" +
-          "in setup will be revealed to both of you."),
+          "ir through the form below, all four lists, scenario and terra" +
+          "in setup for your game will be revealed."),
         playerForm(id),
       )).render
   val chickenPage: (String, Chicken) => String = (id, chi) =>
