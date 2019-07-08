@@ -1,12 +1,13 @@
 package com.crimzie.wmh
 package controllers
 
+import cats.effect.Effect
 import com.sksamuel.scrimage._
 
-import scala.language.postfixOps
+import scala.language.{higherKinds, postfixOps}
 import scala.util.Random
 
-object TerrainController {
+class TerrainController private() {
 
   private val scenarios: Seq[String] = Seq(
     "/scenario1.png",
@@ -96,11 +97,11 @@ object TerrainController {
       if (acc.count(_ == r) < 2) randomTer(n, r +: acc) else randomTer(n, acc)
     }
 
-  val π: Double = math.Pi
+  private val π: Double = math.Pi
 
   case class Coord(x: Double, y: Double)
 
-  def deviation(
+  private def deviation(
       c: Coord,
       d: Int,
       a: Double,
@@ -112,7 +113,7 @@ object TerrainController {
     Coord(math.cos(a) * d + c.x, math.sin(a) * d + c.y)
   }
 
-  def render(s: Seq[(Image, Coord)]): Image =
+  private def render(s: Seq[(Image, Coord)]): Image =
     s.iterator
       .foldLeft(Image.fromResource(random(scenarios)).scaleTo(960, 960)) {
         case (i, (t, c)) => i.overlay(t, c.x * 20 - 30 toInt, c.y * 20 - 30 toInt)
@@ -189,11 +190,16 @@ object TerrainController {
     render(tt.zip(xys))
   }
 
-  /** Png image as byte array by default implicit writer. */
+  /** Png image as byte array with default implicit writer. */
   def setupTable(): Array[Byte] =
     (Random.nextInt(3) match {
       case 0 => cluster()
       case 1 => quadrant()
       case 2 => scatter()
     }).bytes
+}
+
+object TerrainController {
+  def apply[F[_] : Effect](): F[TerrainController] =
+    Effect[F].pure(new TerrainController())
 }
