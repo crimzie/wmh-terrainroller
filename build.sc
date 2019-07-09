@@ -24,9 +24,9 @@ trait BaseModule extends ScalaModule {
       "-Xmacro-settings:materialize-derivations",
     )
 
-  val tapirVer = "0.8.10"
+  val tapirVer = "0.8.11"
   val zioVer = "1.0.0-RC9"
-  val zioCatsVer = "1.3.1.0-RC2"
+  val zioCatsVer = "1.3.1.0-RC3"
   val http4sVer = "0.20.4"
   val doobieVer = "0.7.0"
   val circeVer = "0.11.1"

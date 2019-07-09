@@ -1,7 +1,5 @@
 package com.crimzie.wmh
 
-import com.crimzie.wmh.controllers._
-import com.crimzie.wmh.daos.PostgresChickenDao
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.http4s.implicits._
@@ -29,13 +27,13 @@ object Server extends App with CatsApp {
         s"jdbc:postgresql://$pghost/postgres",
         "postgres",
         pgpass)
-    _ <- PostgresChickenDao.testConnection().transact(tx)
-    terrain <- TerrainController()
-    chicken = new ChickenController(tx, PostgresChickenDao, terrain)
+    _ <- dao.PostgresChicken.testConnection().transact(tx)
+    terrain <- ctrl.Terrain()
+    chicken = new ctrl.Chicken(tx, dao.PostgresChicken, terrain)
     routes = List(
-      api.Pages.index.zioServerLogic { _ => UIO succeed Pages.indexPage },
-      api.Pages.newChickenPageEndp.zioServerLogic { _ => UIO succeed Pages.newChickenPage },
-      api.Terrain.genTerrainEndp.zioServerLogic { _ => UIO { terrain.setupTable() } },
+      api.Pages.index.zioServerLogic { _ => UIO succeed ctrl.Pages.indexPage },
+      api.Pages.newChickenPageEndp.zioServerLogic { _ => UIO succeed ctrl.Pages.newChickenPage },
+      api.Terrain.genTerrainEndp.zioServerLogic { terrain.setupTable },
       api.Terrain.terrainByIdEndp.zioServerLogic(chicken.readSetup),
       api.Chicken.newChickenEndp.zioServerLogic(chicken.createChicken),
       api.Chicken.completeChickenEndp.zioServerLogic { case (id, p) =>

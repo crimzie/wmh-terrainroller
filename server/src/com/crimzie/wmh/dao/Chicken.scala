@@ -1,4 +1,5 @@
-package com.crimzie.wmh.daos
+package com.crimzie.wmh
+package dao
 
 import com.crimzie.wmh.model._
 import doobie._
@@ -7,7 +8,7 @@ import cats.implicits._
 
 import scala.language.higherKinds
 
-trait ChickenDao[F[_]] {
+trait Chicken[F[_]] {
   def add(id: String, player: Player): F[Unit]
 
   def complete(id: String, player: Player, setup: Array[Byte]): F[Option[Unit]]
@@ -17,7 +18,7 @@ trait ChickenDao[F[_]] {
   def readSetup(id: String): F[Option[Array[Byte]]]
 }
 
-object PostgresChickenDao extends ChickenDao[ConnectionIO] {
+object PostgresChicken extends Chicken[ConnectionIO] {
   override def add(
       id: String,
       player: Player,

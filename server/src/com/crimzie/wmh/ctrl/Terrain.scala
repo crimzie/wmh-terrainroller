@@ -1,13 +1,14 @@
 package com.crimzie.wmh
-package controllers
+package ctrl
 
 import cats.effect.Effect
 import com.sksamuel.scrimage._
+import tapir.model.StatusCode
+import zio.{IO, UIO}
 
-import scala.language.{higherKinds, postfixOps}
 import scala.util.Random
 
-class TerrainController private() {
+class Terrain private() {
 
   private val scenarios: Seq[String] = Seq(
     "/scenario1.png",
@@ -21,69 +22,71 @@ class TerrainController private() {
   private def imageByPath(s: String): Image = Image.fromResource(s).scale(0.5)
 
   sealed abstract class Terrain(val rsc: Image) extends Product with Serializable
-  case object Cloud extends Terrain(imageByPath("/ter-cloud.png"))
-  case object Fence extends Terrain(imageByPath("/ter-fence.png"))
-  case object Forest extends Terrain(imageByPath("/ter-forest.png"))
-  case object Hill extends Terrain(imageByPath("/ter-hill.png"))
-  case object Obstruction extends Terrain(imageByPath("/ter-obstr.png"))
-  case object Rough extends Terrain(imageByPath("/ter-rubble.png"))
-  case object Rubble extends Terrain(imageByPath("/ter-rough.png"))
-  case object Trench extends Terrain(imageByPath("/ter-trench.png"))
-  case object Wall extends Terrain(imageByPath("/ter-wall.png"))
-  case object Water extends Terrain(imageByPath("/ter-water.png"))
+  object Terrain {
+    case object Cloud extends Terrain(imageByPath("/ter-cloud.png"))
+    case object Fence extends Terrain(imageByPath("/ter-fence.png"))
+    case object Forest extends Terrain(imageByPath("/ter-forest.png"))
+    case object Hill extends Terrain(imageByPath("/ter-hill.png"))
+    case object Obstruction extends Terrain(imageByPath("/ter-obstr.png"))
+    case object Rough extends Terrain(imageByPath("/ter-rubble.png"))
+    case object Rubble extends Terrain(imageByPath("/ter-rough.png"))
+    case object Trench extends Terrain(imageByPath("/ter-trench.png"))
+    case object Wall extends Terrain(imageByPath("/ter-wall.png"))
+    case object Water extends Terrain(imageByPath("/ter-water.png"))
+  }
 
   private val losBlocks: Seq[Terrain] =
     Seq(
-      Obstruction,
-      Obstruction,
-      Obstruction,
-      Obstruction,
-      Obstruction,
-      Obstruction,
-      Obstruction,
-      Obstruction,
-      Forest,
-      Forest,
-      Forest,
-      Forest,
-      Forest,
-      Forest,
-      Cloud,
-      Cloud,
-      Cloud,
-      Cloud,
-      Cloud,
-      Cloud,
+      Terrain.Obstruction,
+      Terrain.Obstruction,
+      Terrain.Obstruction,
+      Terrain.Obstruction,
+      Terrain.Obstruction,
+      Terrain.Obstruction,
+      Terrain.Obstruction,
+      Terrain.Obstruction,
+      Terrain.Forest,
+      Terrain.Forest,
+      Terrain.Forest,
+      Terrain.Forest,
+      Terrain.Forest,
+      Terrain.Forest,
+      Terrain.Cloud,
+      Terrain.Cloud,
+      Terrain.Cloud,
+      Terrain.Cloud,
+      Terrain.Cloud,
+      Terrain.Cloud,
     )
 
   private val terrains: Seq[Terrain] =
     losBlocks ++ Seq(
-      Wall,
-      Wall,
-      Wall,
-      Fence,
-      Fence,
-      Fence,
-      Rubble,
-      Rubble,
-      Rubble,
-      Rubble,
-      Hill,
-      Hill,
-      Hill,
-      Hill,
-      Water,
-      Water,
-      Water,
-      Water,
-      Trench,
-      Trench,
-      Trench,
-      Trench,
-      Rough,
-      Rough,
-      Rough,
-      Rough,
+      Terrain.Wall,
+      Terrain.Wall,
+      Terrain.Fence,
+      Terrain.Fence,
+      Terrain.Fence,
+      Terrain.Rubble,
+      Terrain.Rubble,
+      Terrain.Rubble,
+      Terrain.Rubble,
+      Terrain.Hill,
+      Terrain.Hill,
+      Terrain.Hill,
+      Terrain.Wall,
+      Terrain.Hill,
+      Terrain.Water,
+      Terrain.Water,
+      Terrain.Water,
+      Terrain.Water,
+      Terrain.Trench,
+      Terrain.Trench,
+      Terrain.Trench,
+      Terrain.Trench,
+      Terrain.Rough,
+      Terrain.Rough,
+      Terrain.Rough,
+      Terrain.Rough,
     )
 
   private val legend: Image = Image.fromResource("/legend.png")
@@ -113,15 +116,15 @@ class TerrainController private() {
     Coord(math.cos(a) * d + c.x, math.sin(a) * d + c.y)
   }
 
-  private def render(s: Seq[(Image, Coord)]): Image =
+  private def render(sc: Image, s: Seq[(Image, Coord)]): Image =
     s.iterator
-      .foldLeft(Image.fromResource(random(scenarios)).scaleTo(960, 960)) {
+      .foldLeft(sc) {
         case (i, (t, c)) => i.overlay(t, c.x * 20 - 30 toInt, c.y * 20 - 30 toInt)
       }
       .resizeTo(960, 1360, Position.TopCenter, Color.White)
       .overlay(legend, y = 960)
 
-  private def cluster(): Image = {
+  private def cluster(sc: Image): Image = {
     val tt: Seq[Image] = randomTer(8, random(losBlocks) :: Nil)
     val center = randomDev(Coord(24, 24), 2)
     val dir: Double = Random.nextInt(12) / 6.0 * π
@@ -136,10 +139,10 @@ class TerrainController private() {
       center,
     )
     assert(tt.length == xys.length)
-    render(tt.zip(xys))
+    render(sc, tt.zip(xys))
   }
 
-  private def quadrant(): Image = {
+  private def quadrant(sc: Image): Image = {
     val tt = randomTer(8, Nil)
     val xys = Seq(
       deviation(
@@ -164,10 +167,10 @@ class TerrainController private() {
       randomDev(Coord(36, 14), 3),
     )
     assert(tt.length == xys.length)
-    render(tt.zip(xys))
+    render(sc, tt.zip(xys))
   }
 
-  private def scatter(): Image = {
+  private def scatter(sc: Image): Image = {
     val vert = Random.nextBoolean()
     val tt = randomTer(if (vert) 8 else 7, random(losBlocks) :: Nil)
     val xysBase = Seq(
@@ -187,19 +190,22 @@ class TerrainController private() {
       )
     val xys = xysBase ++ xysVar :+ randomDev(Coord(24, 24), 2)
     assert(tt.length == xys.length)
-    render(tt.zip(xys))
+    render(sc, tt.zip(xys))
   }
 
   /** Png image as byte array with default implicit writer. */
-  def setupTable(): Array[Byte] =
+  def setupTable(n: Option[Int]): IO[StatusCode, Array[Byte]] = UIO {
+    Image.fromResource(n.fold(random(scenarios)) { n => scenarios(n - 1) }).scaleTo(960, 960)
+  } catchAll { _ => IO.fail(400) } map { scenario =>
     (Random.nextInt(3) match {
-      case 0 => cluster()
-      case 1 => quadrant()
-      case 2 => scatter()
+      case 0 => cluster(scenario)
+      case 1 => quadrant(scenario)
+      case 2 => scatter(scenario)
     }).bytes
+  }
 }
 
-object TerrainController {
-  def apply[F[_] : Effect](): F[TerrainController] =
-    Effect[F].pure(new TerrainController())
+object Terrain {
+  def apply[F[_] : Effect](): F[Terrain] =
+    Effect[F].pure(new Terrain())
 }

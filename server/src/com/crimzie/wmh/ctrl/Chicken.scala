@@ -1,20 +1,20 @@
-package com.crimzie.wmh.controllers
+package com.crimzie.wmh
+package ctrl
 
 import cats.effect.Bracket
-import com.crimzie.wmh.daos.ChickenDao
 import com.crimzie.wmh.model.Player
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import tapir.model.StatusCode
-import zio.{IO, Task, ZIO}
+import zio.{IO, Task}
 
 import scala.util.Random
 
-class ChickenController(
+class Chicken(
     xa: Transactor[Task],
-    chickenDao: ChickenDao[ConnectionIO],
-    terrain: TerrainController,
+    chickenDao: dao.Chicken[ConnectionIO],
+    terrain: Terrain,
 )(implicit br: Bracket[Task, Throwable]) {
 
   def createChicken(p: Player): IO[Nothing, String] = {
@@ -24,10 +24,12 @@ class ChickenController(
 
   def completeChicken(id: String, p: Player): IO[StatusCode, String] =
     (for {
-      table <- ZIO effectTotal { terrain.setupTable() }
-      _ <- chickenDao.complete(id, p, table).transact(xa)
-      cd <- chickenDao.readChicken(id).transact(xa)
-    } yield cd).orDie.collect(404) { case Some(d) => Pages.chickenPage(id, d.state.chicken.get) }
+      table <- terrain.setupTable(None)
+      cd <- (for {
+        _ <- chickenDao.complete(id, p, table).transact(xa)
+        c <- chickenDao.readChicken(id).transact(xa)
+      } yield c).orDie
+    } yield cd).collect(404) { case Some(d) => Pages.chickenPage(id, d.state.chicken.get) }
 
   def readChicken(id: String): IO[StatusCode, String] =
     chickenDao.readChicken(id).transact(xa).orDie.collect(404) { case Some(cd) =>

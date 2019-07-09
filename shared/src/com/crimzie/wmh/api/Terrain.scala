@@ -13,8 +13,11 @@ object Terrain {
   private implicit val imagePngCodec: Codec[Array[Byte], ImagePng, _] =
     Codec.byteArrayCodec.mediaType(ImagePng())
 
-  val genTerrainEndp: Endpoint[Unit, Unit, Array[Byte], Nothing] =
-    endpoint.get.in("terrain").out(body[Array[Byte], ImagePng])
+  val genTerrainEndp: Endpoint[Option[Int], StatusCode, Array[Byte], Nothing] =
+    endpoint.get
+      .in("terrain" and query[Option[Int]]("sc"))
+      .out(body[Array[Byte], ImagePng])
+      .errorOut(statusCode)
 
   val terrainByIdEndp: Endpoint[String, StatusCode, Array[Byte], Nothing] =
     endpoint.get
