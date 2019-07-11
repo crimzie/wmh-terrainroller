@@ -6,12 +6,7 @@ import tapir.model.StatusCode
 
 object Terrain {
 
-  private case class ImagePng() extends MediaType {
-    override val mediaTypeNoParams = "image/png"
-  }
-
-  private implicit val imagePngCodec: Codec[Array[Byte], ImagePng, _] =
-    Codec.byteArrayCodec.mediaType(ImagePng())
+  import codx.MediaTypes._
 
   val genTerrainEndp: Endpoint[Option[Int], StatusCode, Array[Byte], Nothing] =
     endpoint.get

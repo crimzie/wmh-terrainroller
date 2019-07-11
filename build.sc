@@ -60,7 +60,7 @@ object server extends BaseModule {
   )
   override def mainClass: Target[Some[String]] = Some("com.crimzie.wmh.Server")
 
-  def version: Target[String] = "0.4.0"
+  def version: Target[String] = "0.4.2"
   def deploy(args: String*): Command[Unit] = T.command {
     assembly()
     val tag = s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"

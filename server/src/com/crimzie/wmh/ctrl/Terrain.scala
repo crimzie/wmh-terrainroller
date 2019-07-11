@@ -205,7 +205,4 @@ class Terrain private() {
   }
 }
 
-object Terrain {
-  def apply[F[_] : Effect](): F[Terrain] =
-    Effect[F].pure(new Terrain())
-}
+object Terrain {def apply[F[_] : Effect](): F[Terrain] = Effect[F].pure(new Terrain())}

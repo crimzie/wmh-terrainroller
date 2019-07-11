@@ -7,37 +7,34 @@ import scalatags.Text.all._
 object Pages {
   val indexPage: String =
     html(
-      head(),
+      head(
+        link(href := "style.css", rel := "stylesheet"),
+        meta(content := "width=device-width, initial-scale=1", name := "viewport"),
+      ),
       body(
-        div(
-          h3("List chicken", margin := 0),
-          ul(li(a(href := "/chicken")("Initiate")), margin := 0),
-          display.`inline-table`,
-          width := "fit-content",
-          margin := 10,
-          padding := 10,
-          borderWidth := "thin",
-          borderStyle := "solid",
-        ),
-        div(
-          h3("Random terrain generator", margin := 0),
-          ul(
-            li(a(href := "/terrain")("Random scenario")),
-            li(a(href := "/terrain?sc=1")("Scenario 1: King Of The Hill")),
-            li(a(href := "/terrain?sc=2")("Scenario 2: Bunkers")),
-            li(a(href := "/terrain?sc=3")("Scenario 3: Spread The Net")),
-            li(a(href := "/terrain?sc=4")("Scenario 4: Invasion")),
-            li(a(href := "/terrain?sc=5")("Scenario 5: Anarchy")),
-            li(a(href := "/terrain?sc=6")("Scenario 6: Recon II")),
-            margin := 0,
+        div(`class` := "header__block"),
+        tag("section")(
+          div(
+            h3("List chicken"),
+            ul(li(a(href := "/chicken")("Initiate"))),
+            `class` := "list",
           ),
-          display.`inline-table`,
-          width := "fit-content",
-          margin := 10,
-          padding := 10,
-          borderWidth := "thin",
-          borderStyle := "solid",
+          div(
+            h3("Random terrain generator"),
+            ul(
+              li(a(href := "/terrain")("Random scenario")),
+              li(a(href := "/terrain?sc=1")("Scenario 1: King Of The Hill")),
+              li(a(href := "/terrain?sc=2")("Scenario 2: Bunkers")),
+              li(a(href := "/terrain?sc=3")("Scenario 3: Spread The Net")),
+              li(a(href := "/terrain?sc=4")("Scenario 4: Invasion")),
+              li(a(href := "/terrain?sc=5")("Scenario 5: Anarchy")),
+              li(a(href := "/terrain?sc=6")("Scenario 6: Recon II")),
+            ),
+            `class` := "random",
+          ),
+          `class` := "wrapper",
         ),
+        div(`class` := "footer__block"),
       )).render
   private val playerForm: String => Text.TypedTag[String] = u =>
     form(
