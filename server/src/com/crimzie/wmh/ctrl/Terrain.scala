@@ -26,7 +26,7 @@ class Terrain private() {
     case object Cloud extends Terrain(imageByPath("/ter-cloud.png"))
     case object Fence extends Terrain(imageByPath("/ter-fence.png"))
     case object Forest extends Terrain(imageByPath("/ter-forest.png"))
-    case object Hill extends Terrain(imageByPath("/ter-hill.png"))
+    //case object Hill extends Terrain(imageByPath("/ter-hill.png"))
     case object Obstruction extends Terrain(imageByPath("/ter-obstr.png"))
     case object Rough extends Terrain(imageByPath("/ter-rubble.png"))
     case object Rubble extends Terrain(imageByPath("/ter-rough.png"))
@@ -37,8 +37,6 @@ class Terrain private() {
 
   private val losBlocks: Seq[Terrain] =
     Seq(
-      Terrain.Obstruction,
-      Terrain.Obstruction,
       Terrain.Obstruction,
       Terrain.Obstruction,
       Terrain.Obstruction,
@@ -63,18 +61,14 @@ class Terrain private() {
     losBlocks ++ Seq(
       Terrain.Wall,
       Terrain.Wall,
-      Terrain.Fence,
-      Terrain.Fence,
-      Terrain.Fence,
-      Terrain.Rubble,
-      Terrain.Rubble,
-      Terrain.Rubble,
-      Terrain.Rubble,
-      Terrain.Hill,
-      Terrain.Hill,
-      Terrain.Hill,
       Terrain.Wall,
-      Terrain.Hill,
+      Terrain.Fence,
+      Terrain.Fence,
+      Terrain.Fence,
+      Terrain.Rubble,
+      Terrain.Rubble,
+      Terrain.Rubble,
+      Terrain.Rubble,
       Terrain.Water,
       Terrain.Water,
       Terrain.Water,

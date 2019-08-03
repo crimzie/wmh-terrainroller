@@ -60,10 +60,12 @@ object server extends BaseModule {
   )
   override def mainClass: Target[Some[String]] = Some("com.crimzie.wmh.Server")
 
-  def version: Target[String] = "0.4.2"
-  def deploy(args: String*): Command[Unit] = T.command {
+  def version: Target[String] = "0.4.3"
+  def tag: Target[String] =
+    s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"
+
+  def build(args: String*): Command[Unit] = T.command {
     assembly()
-    val tag = s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"
     val out = millSourcePath / "out"
     mkdir(out)
     rm(out / "assembly.jar")
@@ -72,7 +74,7 @@ object server extends BaseModule {
       "docker",
       "build",
       "-t",
-      tag,
+      tag(),
       "--build-arg",
       s"pghost=${sys.env("PGHOST")}",
       "--build-arg",
@@ -80,10 +82,14 @@ object server extends BaseModule {
       ".")(millSourcePath)
       .chunks
       .foreach(_.fold(print, print))
-    %%("docker", "push", tag)(millSourcePath)
-      .chunks
-      .foreach(_.fold(print, print))
     rm(out)
     Result.Success{}
+  }
+
+  def deploy(args: String*): Command[Unit] = T.command {
+    build()
+    %%("docker", "push", tag())(millSourcePath)
+      .chunks
+      .foreach(_.fold(print, print))
   }
 }

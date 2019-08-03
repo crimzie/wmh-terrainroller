@@ -41,7 +41,7 @@ body{
 .list li, .random li {
 	list-style: none;
 	padding: 2px;
-	margin: 10px 0;
+	margin: 10px 0px;
 	width: 275px;
 	background: #bdb0b0;
 	height: 25px;
