@@ -2,13 +2,14 @@ package com.crimzie.wmh
 package ctrl
 
 import cats.effect.Effect
+import com.crimzie.wmh.model.Terrain
 import com.sksamuel.scrimage._
 import tapir.model.StatusCode
 import zio.{IO, UIO}
 
 import scala.util.Random
 
-class Terrain private() {
+class TerrainCtrl private() {
 
   private val scenarios: Seq[String] = Seq(
     "/scenario1.png",
@@ -19,80 +20,44 @@ class Terrain private() {
     "/scenario6.png",
   )
 
-  private def imageByPath(s: String): Image = Image.fromResource(s).scale(0.5)
+  private def toImage(t: model.Terrain): Image = Image.fromResource(t.rsc).scale(0.5)
 
-  sealed abstract class Terrain(val rsc: Image) extends Product with Serializable
-  object Terrain {
-    case object Cloud extends Terrain(imageByPath("/ter-cloud.png"))
-    case object Fence extends Terrain(imageByPath("/ter-fence.png"))
-    case object Forest extends Terrain(imageByPath("/ter-forest.png"))
-    //case object Hill extends Terrain(imageByPath("/ter-hill.png"))
-    case object Obstruction extends Terrain(imageByPath("/ter-obstr.png"))
-    case object Rough extends Terrain(imageByPath("/ter-rubble.png"))
-    case object Rubble extends Terrain(imageByPath("/ter-rough.png"))
-    case object Trench extends Terrain(imageByPath("/ter-trench.png"))
-    case object Wall extends Terrain(imageByPath("/ter-wall.png"))
-    case object Water extends Terrain(imageByPath("/ter-water.png"))
-  }
-
-  private val losBlocks: Seq[Terrain] =
+  private val losBlocks: Seq[model.Terrain] =
     Seq(
-      Terrain.Obstruction,
-      Terrain.Obstruction,
-      Terrain.Obstruction,
-      Terrain.Obstruction,
-      Terrain.Obstruction,
-      Terrain.Obstruction,
-      Terrain.Forest,
-      Terrain.Forest,
-      Terrain.Forest,
-      Terrain.Forest,
-      Terrain.Forest,
-      Terrain.Forest,
-      Terrain.Cloud,
-      Terrain.Cloud,
-      Terrain.Cloud,
-      Terrain.Cloud,
-      Terrain.Cloud,
-      Terrain.Cloud,
+      model.Terrain.LosBlock.Obstruction,
+      model.Terrain.LosBlock.Obstruction,
+      model.Terrain.LosBlock.Forest,
+      model.Terrain.LosBlock.Forest,
+      model.Terrain.LosBlock.Cloud,
+      model.Terrain.LosBlock.Cloud,
     )
 
-  private val terrains: Seq[Terrain] =
+  private val terrains: Seq[model.Terrain] =
     losBlocks ++ Seq(
-      Terrain.Wall,
-      Terrain.Wall,
-      Terrain.Wall,
-      Terrain.Fence,
-      Terrain.Fence,
-      Terrain.Fence,
-      Terrain.Rubble,
-      Terrain.Rubble,
-      Terrain.Rubble,
-      Terrain.Rubble,
-      Terrain.Water,
-      Terrain.Water,
-      Terrain.Water,
-      Terrain.Water,
-      Terrain.Trench,
-      Terrain.Trench,
-      Terrain.Trench,
-      Terrain.Trench,
-      Terrain.Rough,
-      Terrain.Rough,
-      Terrain.Rough,
-      Terrain.Rough,
+      model.Terrain.Other.Wall,
+      model.Terrain.Other.Wall,
+      model.Terrain.Other.Fence,
+      model.Terrain.Other.Fence,
+      model.Terrain.Other.Rubble,
+      model.Terrain.Other.Rubble,
+      model.Terrain.Other.Water,
+      model.Terrain.Other.Water,
+      model.Terrain.Other.Trench,
+      model.Terrain.Other.Trench,
+      model.Terrain.Other.Rough,
+      model.Terrain.Other.Rough,
     )
 
   private val legend: Image = Image.fromResource("/legend.png")
 
   private def random[A](l: Seq[A]): A = l(Random.nextInt(l.size))
 
-  private def randomTer(n: Int, acc: Seq[Terrain] = Seq.empty): Seq[Image] =
-    if (acc.lengthCompare(n) == 0) acc map { _.rsc }
-    else {
-      val r = random(terrains)
-      if (acc.count(_ == r) < 2) randomTer(n, r +: acc) else randomTer(n, acc)
-    }
+  private def shuffleUpLB(l: Seq[model.Terrain]): Seq[Image] = {
+    val bi = l.indexWhere { _.isInstanceOf[model.Terrain.LosBlock] }
+    val btt =
+      if (bi > -1) l(bi) +: Random.shuffle(l.take(bi) ++ l.drop(bi + 1)) else Random.shuffle(l)
+    btt map toImage
+  }
 
   private val π: Double = math.Pi
 
@@ -118,11 +83,11 @@ class Terrain private() {
       .resizeTo(960, 1360, Position.TopCenter, Color.White)
       .overlay(legend, y = 960)
 
-  private def cluster(sc: Image): Image = {
-    val tt: Seq[Image] = randomTer(8, random(losBlocks) :: Nil)
+  private def cluster(sc: Image, tt: Seq[model.Terrain]): Image = {
     val center = randomDev(Coord(24, 24), 2)
     val dir: Double = Random.nextInt(12) / 6.0 * π
     val xys = Seq(
+      center,
       randomDev(deviation(center, 9, dir), 1),
       randomDev(deviation(center, 9, dir + π / 3.0), 1),
       randomDev(deviation(center, 9, dir + π / 1.5), 1),
@@ -130,14 +95,11 @@ class Terrain private() {
       randomDev(deviation(center, 13, dir - π / 3.0), 1),
       randomDev(deviation(center, 13, dir - π / 2.0), 1),
       randomDev(deviation(center, 13, dir - π / 1.5), 1),
-      center,
     )
-    assert(tt.length == xys.length)
-    render(sc, tt.zip(xys))
+    render(sc, shuffleUpLB(tt).zip(xys))
   }
 
-  private def quadrant(sc: Image): Image = {
-    val tt = randomTer(8, Nil)
+  private def quadrant(sc: Image, tt: Seq[model.Terrain]): Image = {
     val xys = Seq(
       deviation(
         Coord(26, 22),
@@ -160,13 +122,10 @@ class Terrain private() {
       randomDev(Coord(36, 34), 3),
       randomDev(Coord(36, 14), 3),
     )
-    assert(tt.length == xys.length)
-    render(sc, tt.zip(xys))
+    render(sc, Random.shuffle(tt) map toImage zip xys)
   }
 
-  private def scatter(sc: Image): Image = {
-    val vert = Random.nextBoolean()
-    val tt = randomTer(if (vert) 8 else 7, random(losBlocks) :: Nil)
+  private def scatter(sc: Image, tt: Seq[model.Terrain]): Image = {
     val xysBase = Seq(
       randomDev(Coord(12, 14), 3),
       randomDev(Coord(12, 34), 3),
@@ -174,7 +133,7 @@ class Terrain private() {
       randomDev(Coord(36, 14), 3),
     )
     val xysVar =
-      if (vert) Seq(
+      if (Random.nextBoolean()) Seq(
         randomDev(Coord(24, 16), 2),
         randomDev(Coord(24, 32), 2),
         randomDev(Coord(if (Random.nextBoolean()) 17 else 31, 24), 2),
@@ -182,21 +141,21 @@ class Terrain private() {
         randomDev(Coord(17, 24), 3),
         randomDev(Coord(31, 24), 3),
       )
-    val xys = xysBase ++ xysVar :+ randomDev(Coord(24, 24), 2)
-    assert(tt.length == xys.length)
-    render(sc, tt.zip(xys))
+    val xys = randomDev(Coord(24, 24), 2) +: (xysBase ++ xysVar)
+    render(sc, shuffleUpLB(tt).zip(xys))
   }
 
   /** Png image as byte array with default implicit writer. */
-  def setupTable(n: Option[Int]): IO[StatusCode, Array[Byte]] = UIO {
+  def setupTable(n: Option[Int])(ott: Option[Seq[Terrain]]): IO[StatusCode, Array[Byte]] = UIO {
     Image.fromResource(n.fold(random(scenarios)) { n => scenarios(n - 1) }).scaleTo(960, 960)
   } catchAll { _ => IO.fail(400) } map { scenario =>
+    val tt = ott getOrElse terrains
     (Random.nextInt(3) match {
-      case 0 => cluster(scenario)
-      case 1 => quadrant(scenario)
-      case 2 => scatter(scenario)
+      case 0 => cluster(scenario, tt)
+      case 1 => quadrant(scenario, tt)
+      case 2 => scatter(scenario, tt)
     }).bytes
   }
 }
 
-object Terrain {def apply[F[_] : Effect](): F[Terrain] = Effect[F].pure(new Terrain())}
+object TerrainCtrl {def apply[F[_] : Effect](): F[TerrainCtrl] = Effect[F].pure(new TerrainCtrl())}

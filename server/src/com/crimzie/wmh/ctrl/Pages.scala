@@ -1,10 +1,22 @@
 package com.crimzie.wmh
 package ctrl
 
+import com.crimzie.wmh.model.Terrain
 import scalatags.Text
 import scalatags.Text.all._
 
 object Pages {
+
+  private val terrBoxes: Terrain => ConcreteHtmlTag[String] = t => {
+    val cb = input(
+      `type` := "checkbox",
+      name := "t",
+      value := Terrain.adt2param(t),
+      checked,
+    )
+    p(cb, cb, Terrain.adt2name(t))
+  }
+
   val indexPage: String =
     html(
       head(
@@ -14,21 +26,61 @@ object Pages {
       body(
         div(`class` := "header__block"),
         tag("section")(
-          div(
-            h3("List chicken"),
-            ul(li(a(href := "/chicken")("Initiate"))),
-            `class` := "list",
-          ),
+          //div(
+          //  h3("List chicken"),
+          //  ul(li(a(href := "/chicken")("Initiate"))),
+          //  `class` := "list",
+          //),
           div(
             h3("Random terrain generator"),
-            ul(
-              li(a(href := "/terrain")("Random scenario")),
-              li(a(href := "/terrain?sc=1")("Scenario 1: King Of The Hill")),
-              li(a(href := "/terrain?sc=2")("Scenario 2: Bunkers")),
-              li(a(href := "/terrain?sc=3")("Scenario 3: Spread The Net")),
-              li(a(href := "/terrain?sc=4")("Scenario 4: Invasion")),
-              li(a(href := "/terrain?sc=5")("Scenario 5: Anarchy")),
-              li(a(href := "/terrain?sc=6")("Scenario 6: Recon II")),
+            "Pick available terrain elements (at least 7 is recommended):", br,
+            form(
+              terrBoxes(Terrain.LosBlock.Forest),
+              terrBoxes(Terrain.LosBlock.Obstruction),
+              terrBoxes(Terrain.LosBlock.Cloud),
+              terrBoxes(Terrain.Other.Water),
+              terrBoxes(Terrain.Other.Trench),
+              terrBoxes(Terrain.Other.Rubble),
+              terrBoxes(Terrain.Other.Rough),
+              terrBoxes(Terrain.Other.Wall),
+              terrBoxes(Terrain.Other.Fence),
+              ul(
+                li(input(
+                  `type` := "submit",
+                  formaction := "/terrain",
+                  value := "Random scenario",
+                )),
+                li(input(
+                  `type` := "submit",
+                  formaction := "/terrain/1",
+                  value := "Scenario 1: King Of The Hill",
+                )),
+                li(input(
+                  `type` := "submit",
+                  formaction := "/terrain/2",
+                  value := "Scenario 2: Bunkers",
+                )),
+                li(input(
+                  `type` := "submit",
+                  formaction := "/terrain/3",
+                  value := "Scenario 3: Spread The Net",
+                )),
+                li(input(
+                  `type` := "submit",
+                  formaction := "/terrain/4",
+                  value := "Scenario 4: Invasion",
+                )),
+                li(input(
+                  `type` := "submit",
+                  formaction := "/terrain/5",
+                  value := "Scenario 5: Anarchy",
+                )),
+                li(input(
+                  `type` := "submit",
+                  formaction := "/terrain/6",
+                  value := "Scenario 6: Recon II",
+                )),
+              ),
             ),
             `class` := "random",
           ),
@@ -36,6 +88,7 @@ object Pages {
         ),
         div(`class` := "footer__block"),
       )).render
+
   private val playerForm: String => Text.TypedTag[String] = u =>
     form(
       "Your name:", br,
@@ -48,6 +101,7 @@ object Pages {
       action := s"/chicken/$u",
       method := "post",
     )
+
   val newChickenPage: String =
     html(
       head(),
@@ -58,6 +112,7 @@ object Pages {
           "vealed to both of you once your opponent submits his lists."),
         playerForm("new"),
       )).render
+
   val chickenUrlPage: String => String = id =>
     html(
       head(),
@@ -66,6 +121,7 @@ object Pages {
         a(href := s"/chicken/$id")("link"),
         ". Send it to your opponent so that he can submit his lists.",
       )).render
+
   val challengePage: (String, String) => String = (c, id) =>
     html(
       head(),
@@ -75,6 +131,7 @@ object Pages {
           "in setup for your game will be revealed."),
         playerForm(id),
       )).render
+
   val chickenPage: (String, model.Chicken) => String = (id, chi) =>
     html(
       head(),

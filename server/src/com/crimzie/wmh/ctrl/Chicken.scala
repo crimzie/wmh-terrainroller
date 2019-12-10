@@ -14,7 +14,7 @@ import scala.util.Random
 class Chicken(
     xa: Transactor[Task],
     chickenDao: dao.Chicken[ConnectionIO],
-    terrain: Terrain,
+    terrain: TerrainCtrl,
 )(implicit br: Bracket[Task, Throwable]) {
 
   def createChicken(p: Player): IO[Nothing, String] = {
@@ -24,7 +24,7 @@ class Chicken(
 
   def completeChicken(id: String, p: Player): IO[StatusCode, String] =
     (for {
-      table <- terrain.setupTable(None)
+      table <- terrain.setupTable(None)(None)
       cd <- (for {
         _ <- chickenDao.complete(id, p, table).transact(xa)
         c <- chickenDao.readChicken(id).transact(xa)

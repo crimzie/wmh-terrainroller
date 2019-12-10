@@ -60,36 +60,48 @@ object server extends BaseModule {
   )
   override def mainClass: Target[Some[String]] = Some("com.crimzie.wmh.Server")
 
-  def version: Target[String] = "0.4.3"
+  def version: Target[String] = "0.4.4"
   def tag: Target[String] =
     s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"
+  
+  private val arrPrnt: (Array[Byte], Int) => Unit = { case (a, _) =>
+      print(a.map(_.toChar).mkString)
+      new Array[Byte](8192) copyToArray a
+  }
 
   def build(args: String*): Command[Unit] = T.command {
     assembly()
     val out = millSourcePath / "out"
-    mkdir(out)
-    rm(out / "assembly.jar")
-    cp(assembly().path, out / "assembly.jar")
-    %%(
-      "docker",
-      "build",
-      "-t",
-      tag(),
-      "--build-arg",
-      s"pghost=${sys.env("PGHOST")}",
-      "--build-arg",
-      s"pgpass=${sys.env("PGPASS")}",
-      ".")(millSourcePath)
-      .chunks
-      .foreach(_.fold(print, print))
     rm(out)
-    Result.Success{}
+    mkdir(out)
+    cp(assembly().path, out / "assembly.jar")
+    os
+      .proc(
+        "docker",
+        "build",
+        "-t",
+        tag(),
+        "--build-arg",
+        s"pghost=${args(0)}",
+        "--build-arg",
+        s"pgpass=${args(1)}",
+        ".")
+      .stream(
+        millSourcePath,
+        onOut = arrPrnt,
+        onErr = arrPrnt) match {
+      case 0 => Result.Success {}
+      case x => Result.Failure(x.toString)
+    }
   }
 
   def deploy(args: String*): Command[Unit] = T.command {
-    build()
-    %%("docker", "push", tag())(millSourcePath)
-      .chunks
-      .foreach(_.fold(print, print))
+    build(args: _*)
+    os
+      .proc("docker", "push", tag())
+      .stream(millSourcePath, onOut = arrPrnt, onErr = arrPrnt) match {
+      case 0 => Result.Success {}
+      case x => Result.Failure(x.toString)
+    }
   }
 }

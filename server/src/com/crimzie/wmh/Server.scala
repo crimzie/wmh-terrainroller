@@ -32,7 +32,7 @@ object Server extends App with CatsApp {
       "postgres",
       pgpass)
     _ <- dao.PostgresChicken.testConnection().transact(tx)
-    terrain <- ctrl.Terrain()
+    terrain <- ctrl.TerrainCtrl()
     files <- ctrl.Files()
     chicken = new ctrl.Chicken(tx, dao.PostgresChicken, terrain)
     routes = List(
@@ -42,8 +42,11 @@ object Server extends App with CatsApp {
       api.Files.textureImg.pureServerLogic { _ => files.textureImg },
       api.Files.textureFooImg.pureServerLogic { _ => files.textureFooImg },
       api.Files.styleCss.pureServerLogic { _ => files.styleCss },
-      api.Terrain.genTerrainEndp.zioServerLogic { terrain.setupTable },
-      api.Terrain.terrainByIdEndp.zioServerLogic(chicken.readSetup),
+      api.TerrainApi.genRandTerrainEndp.zioServerLogic { tt => terrain.setupTable(None)(Some(tt)) },
+      api.TerrainApi.genTerrainEndp.zioServerLogic { case (i, tt) =>
+        terrain.setupTable(Some(i))(Some(tt))
+      },
+      api.TerrainApi.terrainByIdEndp.zioServerLogic(chicken.readSetup),
       api.Chicken.newChickenEndp.zioServerLogic(chicken.createChicken),
       api.Chicken.completeChickenEndp.zioServerLogic { case (id, p) =>
         chicken.completeChicken(id, p)
