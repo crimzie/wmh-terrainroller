@@ -1,8 +1,7 @@
 package com.crimzie.wmh
 
 import cats.implicits._
-import doobie.implicits._
-import doobie.util.transactor.Transactor
+import com.crimzie.wmh.api.{FilesApi, PagesApi, TerrainApi}
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.EntityBody
@@ -24,34 +23,19 @@ object Server extends App with CatsApp {
   }
 
   override def run(args: List[String]): ZIO[Environment, Nothing, Int] = (for {
-    pghost <- ZIO effect { sys.env("PGHOST") }
-    pgpass <- ZIO effect { sys.env("PGPASS") }
-    tx = Transactor.fromDriverManager[Task](
-      "org.postgresql.Driver",
-      s"jdbc:postgresql://$pghost/postgres",
-      "postgres",
-      pgpass)
-    _ <- dao.PostgresChicken.testConnection().transact(tx)
     terrain <- ctrl.TerrainCtrl()
     files <- ctrl.Files()
-    chicken = new ctrl.Chicken(tx, dao.PostgresChicken, terrain)
     routes = List(
-      api.Pages.index.pureServerLogic { _ => ctrl.Pages.indexPage },
-      api.Pages.newChickenPageEndp.pureServerLogic { _ => ctrl.Pages.newChickenPage },
-      api.Files.headerImg.pureServerLogic { _ => files.headerImg },
-      api.Files.textureImg.pureServerLogic { _ => files.textureImg },
-      api.Files.textureFooImg.pureServerLogic { _ => files.textureFooImg },
-      api.Files.styleCss.pureServerLogic { _ => files.styleCss },
-      api.TerrainApi.genRandTerrainEndp.zioServerLogic { tt => terrain.setupTable(None)(Some(tt)) },
-      api.TerrainApi.genTerrainEndp.zioServerLogic { case (i, tt) =>
+      PagesApi.index.pureServerLogic { _ => ctrl.Pages.indexPage },
+      PagesApi.newChickenPageEndp.pureServerLogic { _ => ctrl.Pages.newChickenPage },
+      FilesApi.headerImg.pureServerLogic { _ => files.headerImg },
+      FilesApi.textureImg.pureServerLogic { _ => files.textureImg },
+      FilesApi.textureFooImg.pureServerLogic { _ => files.textureFooImg },
+      FilesApi.styleCss.pureServerLogic { _ => files.styleCss },
+      TerrainApi.genRandTerrainEndp.zioServerLogic { tt => terrain.setupTable(None)(Some(tt)) },
+      TerrainApi.genTerrainEndp.zioServerLogic { case (i, tt) =>
         terrain.setupTable(Some(i))(Some(tt))
       },
-      api.TerrainApi.terrainByIdEndp.zioServerLogic(chicken.readSetup),
-      api.Chicken.newChickenEndp.zioServerLogic(chicken.createChicken),
-      api.Chicken.completeChickenEndp.zioServerLogic { case (id, p) =>
-        chicken.completeChicken(id, p)
-      },
-      api.Chicken.getChickenEndp.zioServerLogic(chicken.readChicken),
     ).toRoutes.orNotFound
     _ <- IO { println("Starting server on port 8080.") }
     _ <- BlazeServerBuilder[Task]

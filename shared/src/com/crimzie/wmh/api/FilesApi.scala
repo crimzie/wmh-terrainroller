@@ -3,7 +3,7 @@ package api
 
 import tapir._
 
-object Files {
+object FilesApi {
 
   import codx.MediaTypes._
 

@@ -33,7 +33,9 @@ object Pages {
           //),
           div(
             h3("Random terrain generator"),
-            "Pick available terrain elements (at least 7 is recommended):", br,
+            "This tool recreates the three terrain randomization methods described in the " +
+              "Steamroller 2019 rulebook. Pick a list of terrain elements you have at your " +
+              "disposal (at least 7 is recommended):", br,
             form(
               terrBoxes(Terrain.LosBlock.Forest),
               terrBoxes(Terrain.LosBlock.Obstruction),
@@ -81,7 +83,14 @@ object Pages {
                   value := "Scenario 6: Recon II",
                 )),
               ),
-            ),
+            ), br,
+            "* The generated random placement of terrain elements is just a suggestion. Feel " +
+              "free to adjust it if that would make sense to you. Also note that Steamroller " +
+              "2019 requires terrain elements to be spaced at least 2\" and elements that a " +
+              "model can't end its movement on and/or hazardous terrains to be spaced 5\" so " +
+              "that a huge base can fit between them. This tool doesn't (yet) respect that " +
+              "restriction, so it's up to the user to fix generated placement accordingly.",
+            //todo observe copyright
             `class` := "random",
           ),
           `class` := "wrapper",

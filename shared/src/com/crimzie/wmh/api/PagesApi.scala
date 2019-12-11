@@ -3,7 +3,7 @@ package api
 
 import tapir._
 
-object Pages {
+object PagesApi {
 
   val index: Endpoint[Unit, Unit, String, Nothing] =
     endpoint.get.in("").out(htmlBodyUtf8)
