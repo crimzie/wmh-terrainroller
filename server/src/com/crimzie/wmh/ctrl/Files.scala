@@ -18,4 +18,4 @@ class Files private() {
 
 }
 
-object Files {def apply[F[_] : Effect](): F[Files] = Effect[F].pure(new Files())}
+object Files {def apply[F[_] : Effect](): F[Files] = Effect[F].delay(new Files())}

@@ -98,7 +98,6 @@ object Pages {
               "model can't end its movement on and/or hazardous terrains to be spaced 5\" so " +
               "that a huge base can fit between them. This tool doesn't (yet) respect that " +
               "restriction, so it's up to the user to fix generated placement accordingly.",
-            //todo observe copyright
             `class` := "random",
           ),
           `class` := "wrapper",

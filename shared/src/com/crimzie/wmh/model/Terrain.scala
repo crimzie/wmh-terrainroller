@@ -25,6 +25,10 @@ object Terrain {
   case object Acid extends Standard
   case object Other extends Custom
 
+  val list: List[Terrain] = Obstruction :: Fence :: Wall :: Trench :: Rough ::
+    Rubble :: FireRubble :: Forest :: FireForest :: Water :: Acid :: Cloud ::
+    AcidCloud :: FireCloud :: Other :: Nil
+
   val adt2param: Map[Terrain, String] = Map(
     Forest -> "forest",
     Cloud -> "cloud",

@@ -22,7 +22,7 @@ object Server extends App with CatsApp {
       ServerEndpoint(e, in => UIO { logic(in).asRight })
   }
 
-  override def run(args: List[String]): ZIO[Environment, Nothing, Int] = (for {
+  override def run(args: List[String]): URIO[zio.ZEnv, Int] = (for {
     terrain <- ctrl.TerrainCtrl()
     files <- ctrl.Files()
     routes = List(

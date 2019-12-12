@@ -27,12 +27,12 @@ trait BaseModule extends ScalaModule {
       "-Xmacro-settings:materialize-derivations",
     )
 
-  val tapirVer = "0.8.11"
-  val zioVer = "1.0.0-RC9"
-  val zioCatsVer = "1.3.1.0-RC3"
+  val tapirVer = "0.11.9"
+  val zioVer = "1.0.0-RC17"
+  val zioCatsVer = "2.0.0.0-RC10"
   val http4sVer = "0.20.15"
-  val doobieVer = "0.7.0"
-  val circeVer = "0.11.1"
+  val doobieVer = "0.8.6"
+  val circeVer = "0.12.3"
   val scalatagsVer = "0.7.0"
   val scrimageVer = "2.1.8"
 }
@@ -63,7 +63,7 @@ object server extends BaseModule {
   )
   override def mainClass: Target[Some[String]] = Some("com.crimzie.wmh.Server")
 
-  def version: Target[String] = "0.4.5"
+  def version: Target[String] = "0.4.6"
   def tag: Target[String] =
     s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"
   
