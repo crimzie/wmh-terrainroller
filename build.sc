@@ -6,6 +6,9 @@ import mill.scalajslib.ScalaJSModule
 import mill.scalalib._
 import mill.eval.Result
 
+  // `mill mill.scalalib.Dependency/updates` to look up updated dep versions
+  // `mill.scalalib.GenIdea/idea` to gen Idea project
+
 trait BaseModule extends ScalaModule {
   override def scalaVersion = "2.12.8"
   override def scalacOptions: Target[Seq[String]] =
@@ -27,7 +30,7 @@ trait BaseModule extends ScalaModule {
   val tapirVer = "0.8.11"
   val zioVer = "1.0.0-RC9"
   val zioCatsVer = "1.3.1.0-RC3"
-  val http4sVer = "0.20.4"
+  val http4sVer = "0.20.15"
   val doobieVer = "0.7.0"
   val circeVer = "0.11.1"
   val scalatagsVer = "0.7.0"
@@ -60,7 +63,7 @@ object server extends BaseModule {
   )
   override def mainClass: Target[Some[String]] = Some("com.crimzie.wmh.Server")
 
-  def version: Target[String] = "0.4.4"
+  def version: Target[String] = "0.4.5"
   def tag: Target[String] =
     s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"
   
@@ -76,20 +79,8 @@ object server extends BaseModule {
     mkdir(out)
     cp(assembly().path, out / "assembly.jar")
     os
-      .proc(
-        "docker",
-        "build",
-        "-t",
-        tag(),
-        "--build-arg",
-        s"pghost=${args(0)}",
-        "--build-arg",
-        s"pgpass=${args(1)}",
-        ".")
-      .stream(
-        millSourcePath,
-        onOut = arrPrnt,
-        onErr = arrPrnt) match {
+      .proc("docker", "build", "-t", tag(), ".")
+      .stream(millSourcePath, onOut = arrPrnt, onErr = arrPrnt) match {
       case 0 => Result.Success {}
       case x => Result.Failure(x.toString)
     }

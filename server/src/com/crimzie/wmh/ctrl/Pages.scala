@@ -12,7 +12,7 @@ object Pages {
       `type` := "checkbox",
       name := "t",
       value := Terrain.adt2param(t),
-      checked,
+      if (t.isInstanceOf[Terrain.Standard]) checked else "",
     )
     p(cb, cb, Terrain.adt2name(t))
   }
@@ -35,17 +35,25 @@ object Pages {
             h3("Random terrain generator"),
             "This tool recreates the three terrain randomization methods described in the " +
               "Steamroller 2019 rulebook. Pick a list of terrain elements you have at your " +
-              "disposal (at least 7 is recommended):", br,
+              "disposal (at least 7 is recommended) using checkboxes below.", br, br,
             form(
-              terrBoxes(Terrain.LosBlock.Forest),
-              terrBoxes(Terrain.LosBlock.Obstruction),
-              terrBoxes(Terrain.LosBlock.Cloud),
-              terrBoxes(Terrain.Other.Water),
-              terrBoxes(Terrain.Other.Trench),
-              terrBoxes(Terrain.Other.Rubble),
-              terrBoxes(Terrain.Other.Rough),
-              terrBoxes(Terrain.Other.Wall),
-              terrBoxes(Terrain.Other.Fence),
+              "Standard terrain features:", br,
+              terrBoxes(Terrain.Forest),
+              terrBoxes(Terrain.Obstruction),
+              terrBoxes(Terrain.Cloud),
+              terrBoxes(Terrain.Water),
+              terrBoxes(Terrain.Trench),
+              terrBoxes(Terrain.Rubble),
+              terrBoxes(Terrain.Rough),
+              terrBoxes(Terrain.Wall),
+              terrBoxes(Terrain.Fence),
+              terrBoxes(Terrain.Acid),
+              terrBoxes(Terrain.FireCloud),
+              "Custom terrain:", br,
+              terrBoxes(Terrain.AcidCloud),
+              terrBoxes(Terrain.FireRubble),
+              terrBoxes(Terrain.FireForest),
+              terrBoxes(Terrain.Other),
               ul(
                 li(input(
                   `type` := "submit",

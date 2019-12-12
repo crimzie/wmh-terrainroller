@@ -1,50 +1,66 @@
 package com.crimzie.wmh
 package model
 
-sealed abstract class Terrain(val rsc: String) extends Product with Serializable
+sealed trait Terrain extends Product with Serializable
 
 object Terrain {
 
+  trait Standard extends Terrain
+  trait Custom extends Terrain
   trait LosBlock
-  object LosBlock {
-    case object Forest extends Terrain("/ter-forest.png") with LosBlock
-    case object Cloud extends Terrain("/ter-cloud.png") with LosBlock
-    case object Obstruction extends Terrain("/ter-obstr.png") with LosBlock
-  }
 
-  object Other {
-    case object Fence extends Terrain("/ter-fence.png")
-    case object Rough extends Terrain("/ter-rubble.png")
-    case object Rubble extends Terrain("/ter-rough.png")
-    case object Trench extends Terrain("/ter-trench.png")
-    case object Wall extends Terrain("/ter-wall.png")
-    case object Water extends Terrain("/ter-water.png")
-  }
+  case object Forest extends LosBlock with Standard
+  case object Cloud extends LosBlock with Standard
+  case object Obstruction extends LosBlock with Standard
+  case object FireCloud extends LosBlock with Standard
+  case object AcidCloud extends LosBlock with Custom
+  case object FireForest extends LosBlock with Custom
+  case object FireRubble extends LosBlock with Custom
+  case object Fence extends Standard
+  case object Rough extends Standard
+  case object Rubble extends Standard
+  case object Trench extends Standard
+  case object Wall extends Standard
+  case object Water extends Standard
+  case object Acid extends Standard
+  case object Other extends Custom
 
   val adt2param: Map[Terrain, String] = Map(
-      LosBlock.Forest -> "forest",
-      LosBlock.Cloud -> "cloud",
-      LosBlock.Obstruction -> "obstr",
-      Other.Fence -> "fence",
-      Other.Rough -> "rough",
-      Other.Rubble -> "rubble",
-      Other.Trench -> "trench",
-      Other.Wall -> "wall",
-      Other.Water -> "water",
+    Forest -> "forest",
+    Cloud -> "cloud",
+    Obstruction -> "obstr",
+    Fence -> "fence",
+    Rough -> "rough",
+    Rubble -> "rubble",
+    Trench -> "trench",
+    Wall -> "wall",
+    Water -> "water",
+    Acid -> "acid",
+    FireCloud -> "bcloud",
+    AcidCloud -> "ccloud",
+    FireForest -> "bforest",
+    FireRubble -> "frubble",
+    Other -> "other",
   )
 
   val param2adt: Map[String, Terrain] = adt2param map { _.swap }
 
   val adt2name: Map[Terrain, String] = Map(
-     LosBlock.Forest -> "Forest",
-     LosBlock.Cloud -> "Cloud",
-     LosBlock.Obstruction -> "Obstruction",
-     Other.Fence -> "Obstacle, Concealment",
-     Other.Rough -> "Rough Terrain",
-     Other.Rubble -> "Rubble",
-     Other.Trench -> "Trench",
-     Other.Wall -> "Obstacle, Cover",
-     Other.Water -> "Shallow Water",
+    Forest -> "Forest",
+    Cloud -> "Dense Fog",
+    Obstruction -> "Obstruction",
+    Fence -> "Obstacle, Concealment",
+    Rough -> "Rough Terrain",
+    Rubble -> "Rubble",
+    Trench -> "Trench",
+    Wall -> "Obstacle, Cover",
+    Water -> "Shallow Water",
+    Acid -> "Acid Bath",
+    FireCloud -> "Burning Earth",
+    AcidCloud -> "Acid Cloud",
+    FireForest -> "Burning Forest",
+    FireRubble -> "Burning Rubble",
+    Other -> "Custom",
   )
 }
 
