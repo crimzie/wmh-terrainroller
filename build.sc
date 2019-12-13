@@ -78,10 +78,13 @@ object server extends BaseModule {
     rm(out)
     mkdir(out)
     cp(assembly().path, out / "assembly.jar")
+    val t = tag()
     os
-      .proc("docker", "build", "-t", tag(), ".")
+      .proc("docker", "build", "-t", t, ".")
       .stream(millSourcePath, onOut = arrPrnt, onErr = arrPrnt) match {
-      case 0 => Result.Success {}
+      case 0 =>
+        println(s"docker run -d -p80:8080 --tmpfs /tmp --restart on-failure eu.gcr.io/wmh-terrain/wmh-terrainroller:$t")
+        Result.Success {}
       case x => Result.Failure(x.toString)
     }
   }
