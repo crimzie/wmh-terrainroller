@@ -1,4 +1,3 @@
-import ammonite.ops._
 import mill._
 import mill.api.Loose
 import mill.define.{Command, Target}
@@ -63,39 +62,35 @@ object server extends BaseModule {
   )
   override def mainClass: Target[Some[String]] = Some("com.crimzie.wmh.Server")
 
-  def version: Target[String] = "0.4.6"
+  def version: Target[String] = "0.4.7"
   def tag: Target[String] =
     s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"
-  
-  private val arrPrnt: (Array[Byte], Int) => Unit = { case (a, _) =>
+
+  private def proc(p: os.Path, cmd: String*): Result[Unit] = {
+    val arrPrnt: (Array[Byte], Int) => Unit = { case (a, _) =>
       print(a.map(_.toChar).mkString)
       new Array[Byte](8192) copyToArray a
+    }
+
+    os.proc(cmd).stream(p, onOut = arrPrnt, onErr = arrPrnt) match {
+      case 0 => Result.Success()
+      case x => Result.Failure("Exit code: " + x)
+    }
   }
 
   def build(args: String*): Command[Unit] = T.command {
     assembly()
     val out = millSourcePath / "out"
-    rm(out)
-    mkdir(out)
-    cp(assembly().path, out / "assembly.jar")
+    os.remove.all(out)
+    os.makeDir.all(out)
+    os.copy(assembly().path, out / "assembly.jar", replaceExisting = true)
     val t = tag()
-    os
-      .proc("docker", "build", "-t", t, ".")
-      .stream(millSourcePath, onOut = arrPrnt, onErr = arrPrnt) match {
-      case 0 =>
-        println(s"docker run -d -p80:8080 --tmpfs /tmp --restart on-failure eu.gcr.io/wmh-terrain/wmh-terrainroller:$t")
-        Result.Success {}
-      case x => Result.Failure(x.toString)
-    }
+    proc(millSourcePath, "docker", "build", "-t", t, ".")
   }
 
   def deploy(args: String*): Command[Unit] = T.command {
     build(args: _*)
-    os
-      .proc("docker", "push", tag())
-      .stream(millSourcePath, onOut = arrPrnt, onErr = arrPrnt) match {
-      case 0 => Result.Success {}
-      case x => Result.Failure(x.toString)
-    }
+    proc(millSourcePath, "docker", "push", tag())
   }
+  // docker run -d -p80:8080 --tmpfs /tmp --restart on-failure eu.gcr.io/wmh-terrain/wmh-terrainroller:0.4.7
 }

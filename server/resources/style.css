@@ -32,11 +32,18 @@ body{
 	margin: 0 auto;
 	padding-bottom: 50px;
 }
+.random {
+	margin-left: 10;
+}
 .list, .random {
 	padding-bottom: 15px;
 	display: inline-block;
 	vertical-align: top;
-	margin: 10;
+}
+.random li input {
+    border: none;
+    background: inherit;
+    width: 100%;
 }
 .list li, .random li {
 	list-style: none;
