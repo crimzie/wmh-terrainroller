@@ -6,10 +6,9 @@ import mill.scalalib._
 import mill.eval.Result
 
   // `mill mill.scalalib.Dependency/updates` to look up updated dep versions
-  // `mill.scalalib.GenIdea/idea` to gen Idea project
 
 trait BaseModule extends ScalaModule {
-  override def scalaVersion = "2.12.8"
+  override def scalaVersion = "2.12.10"
   override def scalacOptions: Target[Seq[String]] =
     super.scalacOptions() ++ Seq(
       "-deprecation",
@@ -29,15 +28,15 @@ trait BaseModule extends ScalaModule {
   val tapirVer = "0.11.9"
   val zioVer = "1.0.0-RC17"
   val zioCatsVer = "2.0.0.0-RC10"
-  val http4sVer = "0.20.15"
-  val doobieVer = "0.8.6"
-  val circeVer = "0.12.3"
-  val scalatagsVer = "0.7.0"
+  val http4sVer = "0.20.19"
+  val doobieVer = "0.8.8"
+  val circeVer = "0.13.0"
+  val scalatagsVer = "0.8.6"
   val scrimageVer = "2.1.8"
 }
 
 trait BaseJsModule extends BaseModule with ScalaJSModule {
-  override def scalaJSVersion: Target[String] = "0.6.26"
+  override def scalaJSVersion: Target[String] = "0.6.32"
 }
 
 object shared extends BaseJsModule {
@@ -62,21 +61,15 @@ object server extends BaseModule {
   )
   override def mainClass: Target[Some[String]] = Some("com.crimzie.wmh.Server")
 
-  def version: Target[String] = "0.4.7"
+  def version: Target[String] = "0.4.9"
   def tag: Target[String] =
     s"eu.gcr.io/wmh-terrain/wmh-terrainroller:${version()}"
 
-  private def proc(p: os.Path, cmd: String*): Result[Unit] = {
-    val arrPrnt: (Array[Byte], Int) => Unit = { case (a, _) =>
-      print(a.map(_.toChar).mkString)
-      new Array[Byte](8192) copyToArray a
+  private def proc(p: os.Path, cmd: String*): Result[Unit] = 
+    os.proc(cmd).call(p, stdout = os.Inherit, stderr = os.Inherit) match {
+      case os.CommandResult(0, _) => Result.Success()
+      case os.CommandResult(x, _) => Result.Failure(s"Exit code: $x")
     }
-
-    os.proc(cmd).stream(p, onOut = arrPrnt, onErr = arrPrnt) match {
-      case 0 => Result.Success()
-      case x => Result.Failure("Exit code: " + x)
-    }
-  }
 
   def build(args: String*): Command[Unit] = T.command {
     assembly()
@@ -92,5 +85,5 @@ object server extends BaseModule {
     build(args: _*)
     proc(millSourcePath, "docker", "push", tag())
   }
-  // docker run -d -p80:8080 --tmpfs /tmp --restart on-failure eu.gcr.io/wmh-terrain/wmh-terrainroller:0.4.7
+  // docker run -d -p80:8080 --tmpfs /tmp --restart on-failure eu.gcr.io/wmh-terrain/wmh-terrainroller:0.4.9
 }
